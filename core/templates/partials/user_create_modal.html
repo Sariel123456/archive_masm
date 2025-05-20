@@ -1,0 +1,174 @@
+<div id="createUserModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg w-full max-w-md mx-4">
+        <div class="p-6 border-b">
+            <h3 class="text-lg font-semibold">Créer un nouvel utilisateur</h3>
+        </div>
+        
+        <form action="{% url 'user_create' %}" method="POST" class="p-6">
+            {% csrf_token %}
+            
+            <div class="space-y-4">
+                <!-- Email -->
+                <div class="grid gap-2">
+                    <label class="text-sm font-medium">Email (@gouv.bj)</label>
+                    {{ form.email }}
+                    <span class="text-xs text-gray-500">L'adresse email doit se terminer par @gouv.bj</span>
+                    {% if form.email.errors %}
+                    <div class="text-red-500 text-sm">
+                        {% for error in form.email.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Matricule -->
+                <div class="grid gap-2">
+                    <label class="text-sm font-medium">Matricule</label>
+                    {{ form.matricule }}
+                    {% if form.matricule.errors %}
+                    <div class="text-red-500 text-sm">
+                        {% for error in form.matricule.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Nom -->
+                <div class="grid gap-2">
+                    <label class="text-sm font-medium">Nom</label>
+                    {{ form.nom }}
+                    {% if form.nom.errors %}
+                    <div class="text-red-500 text-sm">
+                        {% for error in form.nom.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Prénom -->  
+                <div class="grid gap-2">
+                    <label class="text-sm font-medium">Prénom</label>
+                    {{ form.prenom }}
+                    {% if form.prenom.errors %}
+                    <div class="text-red-500 text-sm">
+                        {% for error in form.prenom.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Direction -->
+                <div class="grid gap-2">
+                    <label class="text-sm font-medium">Direction</label>
+                    {{ form.direction }}
+                    {% if form.direction.errors %}
+                    <div class="text-red-500 text-sm">
+                        {% for error in form.direction.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Service -->
+                <div class="grid gap-2">
+                    <label class="text-sm font-medium">Service</label>
+                    {{ form.service }}
+                    {% if form.service.errors %}
+                    <div class="text-red-500 text-sm">
+                        {% for error in form.service.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Poste -->
+                <div class="grid gap-2">
+                    <label class="text-sm font-medium">Poste</label>
+                    {{ form.poste }}
+                    {% if form.poste.errors %}
+                    <div class="text-red-500 text-sm">
+                        {% for error in form.poste.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Mots de passe masqués car générés automatiquement -->
+            </div>
+            
+            <div class="mt-6 flex justify-end space-x-3">
+                <button type="button" onclick="closeModal('createUserModal')"
+                        class="px-4 py-2 border rounded-md hover:bg-gray-50">
+                    Annuler
+                </button>
+                <button type="submit" 
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                    Créer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    $("#id_direction").change(function () {
+        const directionId = $(this).val();
+        $.ajax({
+            url: "{% url 'ajax_load_services' %}",
+            data: {
+                'direction': directionId
+            },
+            success: function (data) {
+                let options = '<option value="">---------</option>';
+                data.forEach(function(item) {
+                    options += `<option value="${item.id}">${item.nom}</option>`;
+                });
+                $("#id_service").html(options);
+                $("#id_poste").html('<option value="">Sélectionner d\'abord un service</option>');
+            }
+        });
+    });
+
+    $("#id_service").change(function () {
+        const serviceId = $(this).val();
+        $.ajax({
+            url: "{% url 'ajax_load_postes' %}",
+            data: {
+                'service': serviceId
+            },
+            success: function (data) {
+                let options = '<option value="">---------</option>';
+                data.forEach(function(item) {
+                    options += `<option value="${item.id}">${item.nom}</option>`;
+                });
+                $("#id_poste").html(options);
+            }
+        });
+    });
+
+    // Validation email @gouv.bj
+    document.getElementById('{{ form.email.id_for_label }}').addEventListener('input', function(e) {
+        const email = e.target.value;
+        const isValid = email.endsWith('@gouv.bj');
+        
+        if (email && !isValid) {
+            e.target.classList.add('border-red-500');
+            e.target.classList.remove('border-green-500');
+        } else if (email && isValid) {
+            e.target.classList.add('border-green-500');
+            e.target.classList.remove('border-red-500');
+        } else {
+            e.target.classList.remove('border-red-500', 'border-green-500');
+        }
+    });
+});
+</script>

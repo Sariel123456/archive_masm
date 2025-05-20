@@ -1,0 +1,55 @@
+{% extends 'base_2.html' %}
+{% load static %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-semibold">Nouvelle Archive</h1>
+            <p class="text-sm text-gray-500">
+                Choisissez le type d'archive à créer
+            </p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Carte pour Dossier -->
+        <a href="{% url 'add_archive_folder' %}" 
+           class="block p-6 bg-white border rounded-lg shadow hover:shadow-md transition-shadow">
+            <div class="flex items-center space-x-4">
+                <div class="p-3 bg-blue-50 rounded-full">
+                    <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-lg font-semibold">Créer un Dossier</h2>
+                    <p class="text-sm text-gray-500">
+                        Créez un nouveau dossier avec ses pièces associées
+                    </p>
+                </div>
+            </div>
+        </a>
+
+        <!-- Carte pour Secrétariat -->
+        <a href="{% url 'add_archive_secretariat' %}" 
+           class="block p-6 bg-white border rounded-lg shadow hover:shadow-md transition-shadow">
+            <div class="flex items-center space-x-4">
+                <div class="p-3 bg-green-50 rounded-full">
+                    <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-lg font-semibold">Documents Secrétariat</h2>
+                    <p class="text-sm text-gray-500">
+                        Ajoutez des documents indépendants via le secrétariat
+                    </p>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+{% endblock %}

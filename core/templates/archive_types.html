@@ -1,0 +1,322 @@
+{# filepath: /home/sariel/Documents/archive_project/archive_masm/core/templates/archive_types.html #}
+{% extends 'base_2.html' %}
+{% load static %}
+
+{% block content %}
+<div class="space-y-6">
+
+            <div class="flex items-center justify-between">
+                <h1 class="text-2xl font-semibold">Types d'archives</h1>
+                <p class="text-muted-foreground">Gérez les types de pieces et de dossiers</p>
+                <a href="{% url 'add_type' %}" 
+                   class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Nouveau type
+                </a>
+            </div>
+
+    <!-- Carte principale -->
+    <div class="bg-white rounded-lg border shadow">
+        <div class="p-6 border-b">
+            <h2 class="text-lg font-semibold">Types de Documents</h2>
+        </div>
+        <div class="p-6">
+            <div class="space-y-4">
+                <!-- Barre de recherche et onglets -->
+                <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                    <div class="relative flex-1">
+                        <svg class="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <input type="text" 
+                               id="searchInput"
+                               placeholder="Rechercher un type..." 
+                               class="w-full pl-8 py-2 border rounded-md">
+                    </div>
+                    
+                    <!-- Onglets -->
+                    <div class="w-full sm:w-auto">
+                        <div class="border rounded-md p-1 inline-flex">
+                            <button onclick="switchTab('dossiers')" 
+                                    id="dossiersTab"
+                                    class="flex items-center px-3 py-2 rounded-md bg-primary text-white">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                                </svg>
+                                Types de dossiers
+                            </button>
+                            <button onclick="switchTab('pieces')" 
+                                    id="piecesTab"
+                                    class="flex items-center px-3 py-2 rounded-md">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                                Types de pièces
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contenu des onglets -->
+                <div id="dossiersContent" class="space-y-4">
+<!-- Dans la section des types de dossiers, modifiez le div de chaque type -->
+{% for type in folder_types %}
+<div class="space-y-4 border rounded-lg p-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="space-y-1">
+            <div class="flex items-center">
+                <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                </svg>
+                <h4 class="text-sm font-semibold">{{ type.nom }}</h4>
+            </div>
+            <p class="text-sm text-gray-500">{{ type.description }}</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <button onclick="togglePieceTypes('{{ type.id }}')" class="inline-flex items-center px-3 py-1 border rounded-md hover:bg-gray-50">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+                Types de pièces
+            </button>
+            <a href="{% url 'edit_type' type.id %}?category=folder" 
+            class="inline-flex items-center px-3 py-1 border rounded-md hover:bg-gray-50">
+             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                       d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+             </svg>
+             Modifier
+         </a>
+            <button onclick="confirmDelete('{{ type.id }}', 'folder')" class="inline-flex items-center px-3 py-1 border rounded-md text-red-600 hover:bg-red-50">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+                Supprimer
+            </button>
+        </div>
+    </div>
+
+    <!-- Section pour les types de pièces liés -->
+    <div id="pieceTypes-{{ type.id }}" class="hidden mt-4 pl-6 border-l-2 border-gray-200">
+        <div class="space-y-2">
+            <div class="flex justify-between items-center">
+                <h5 class="text-sm font-medium">Types de pièces associés</h5>
+                <button onclick="window.location.href='{% url 'add_piece_type' type.id %}'" 
+        class="inline-flex items-center px-2 py-1 text-sm border rounded-md hover:bg-gray-50">
+    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+    </svg>
+    Ajouter
+</button>
+            </div>
+            <div class="space-y-2" id="pieceTypesList-{{ type.id }}">
+                <!-- Les types de pièces seront chargés ici dynamiquement -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+
+                </div>
+
+                <div id="piecesContent" class="space-y-4 hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold">Types de pièces indépendants</h3>
+
+                    </div>
+                    
+                    {% for type in piece_types %}
+                    <div class="type-item flex justify-between items-center p-4 border rounded-lg">
+                        <div>
+                            <h4 class="font-medium">{{ type.nom }}</h4>
+                            <p class="text-sm text-gray-500">{{ type.description }}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <a href="{% url 'edit_type' type.id %}?category=piece" 
+                               class="inline-flex items-center px-3 py-1 border rounded-md hover:bg-gray-50">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                </svg>
+                                Modifier
+                            </a>
+                            <button onclick="confirmDelete('{{ type.id }}', 'piece')" 
+                                    class="inline-flex items-center px-3 py-1 border rounded-md text-red-600 hover:bg-red-50">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                                Supprimer
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+{% include 'partials/type_delete_modal.html' %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function switchTab(tab) {
+    const dossiersTab = document.getElementById('dossiersTab');
+    const piecesTab = document.getElementById('piecesTab');
+    const dossiersContent = document.getElementById('dossiersContent');
+    const piecesContent = document.getElementById('piecesContent');
+
+    if (tab === 'dossiers') {
+        dossiersTab.classList.add('bg-primary', 'text-white');
+        piecesTab.classList.remove('bg-primary', 'text-white');
+        dossiersContent.classList.remove('hidden');
+        piecesContent.classList.add('hidden');
+    } else {
+        piecesTab.classList.add('bg-primary', 'text-white');
+        dossiersTab.classList.remove('bg-primary', 'text-white');
+        piecesContent.classList.remove('hidden');
+        dossiersContent.classList.add('hidden');
+    }
+}
+
+function openCreateDialog() {
+    document.getElementById('createTypeModal').classList.remove('hidden');
+}
+
+function openEditDialog(typeId) {
+    document.getElementById('editTypeModal').classList.remove('hidden');
+    // TODO: Charger les données du type à modifier
+}
+
+function confirmDelete(typeId, category) {
+    document.getElementById('deleteTypeModal').classList.remove('hidden');
+    // Ajouter la catégorie dans l'URL
+    document.getElementById('deleteTypeForm').action = `/types/${typeId}/${category}/delete/`;
+}
+
+// Filtrage par recherche
+document.getElementById('searchInput').addEventListener('input', function(e) {
+    const searchValue = e.target.value.toLowerCase();
+    const items = document.querySelectorAll('.type-item');
+    
+    items.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        item.style.display = text.includes(searchValue) ? 'flex' : 'none';
+    });
+});
+<!-- Ajoutez ce script à la fin du bloc extra_js -->
+
+
+    function togglePieceTypes(folderId) {
+        const pieceTypesDiv = document.getElementById(`pieceTypes-${folderId}`);
+        if (pieceTypesDiv.classList.contains('hidden')) {
+            loadPieceTypes(folderId);
+            pieceTypesDiv.classList.remove('hidden');
+        } else {
+            pieceTypesDiv.classList.add('hidden');
+        }
+    }
+    
+    function loadPieceTypes(folderId) {
+        const container = document.getElementById(`pieceTypesList-${folderId}`);
+        container.innerHTML = '<div class="text-center py-4">Chargement...</div>';
+    
+        fetch(`/types/${folderId}/pieces/`)
+            .then(response => response.json())
+            .then(data => {
+                container.innerHTML = '';
+                if (data.length === 0) {
+                    container.innerHTML = '<div class="text-gray-500 text-sm">Aucun type de pièce associé</div>';
+                    return;
+                }
+                data.forEach(pieceType => {
+                    container.innerHTML += `
+                        <div class="flex justify-between items-center p-2 bg-gray-50 rounded-md">
+                            <span class="text-sm">${pieceType.nom}</span>
+                            <div class="flex gap-2">
+                                <a href="/types/${pieceType.id}/edit/?category=piece" 
+                                   class="text-gray-600 hover:text-gray-900">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </a>
+                                <button onclick="confirmDelete('${pieceType.id}', 'piece')" 
+                                        class="text-red-600 hover:text-red-800">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+            })
+            .catch(error => {
+                container.innerHTML = '<div class="text-red-500 text-sm">Erreur lors du chargement</div>';
+            });
+    }
+
+
+
+        
+        function openCreatePieceTypeDialog(folderId) {
+            const modal = document.getElementById('createTypeModal');
+            const form = document.getElementById('createTypeForm');
+            
+            // Configurer le formulaire pour la création d'un type de pièce lié
+            document.querySelector('[name="typeCategorie"]').value = 'piece';
+            document.querySelector('[name="folderTypeId"]').value = folderId;
+            
+            // Mettre à jour le titre du modal
+            modal.querySelector('h3').textContent = 'Nouveau type de pièce';
+            modal.querySelector('p').textContent = 'Créer un nouveau type de pièce pour ce dossier';
+            
+            modal.classList.remove('hidden');
+        }
+        
+        // Gérer la soumission du formulaire
+        document.getElementById('createTypeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            fetch('/types/create/', {
+                method: 'POST',
+                body: new FormData(this),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Fermer le modal
+                    document.getElementById('createTypeModal').classList.add('hidden');
+                    this.reset();
+                    
+                    // Si c'est un type de pièce lié, recharger la liste
+                    const folderTypeId = document.querySelector('[name="folderTypeId"]').value;
+                    if (folderTypeId) {
+                        loadPieceTypes(folderTypeId);
+                    } else {
+                        // Sinon recharger la page pour afficher le nouveau type
+                        window.location.reload();
+                    }
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                alert('Erreur lors de la création du type');
+                console.error(error);
+            });
+        });
+        </script>
+{% endblock %}

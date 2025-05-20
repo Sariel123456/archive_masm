@@ -1,0 +1,42 @@
+<!-- filepath: core/templates/edit_folder.html -->
+{% extends 'base_2.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto py-8">
+    <div class="bg-white rounded-lg border shadow">
+        <div class="p-6 border-b">
+            <h2 class="text-xl font-semibold">Modifier le dossier</h2>
+        </div>
+        <form method="POST" class="p-6 space-y-6">
+            {% csrf_token %}
+            <div class="grid gap-4">
+                <div class="grid gap-2">
+                    <label for="titre" class="text-sm font-medium">Titre</label>
+                    <input type="text" name="titre" id="titre" value="{{ folder.titre }}" class="w-full p-2 border rounded-md" required>
+                </div>
+                <div class="grid gap-2">
+                    <label for="description" class="text-sm font-medium">Description</label>
+                    <textarea name="description" id="description" rows="4" class="w-full p-2 border rounded-md" required>{{ folder.description }}</textarea>
+                </div>
+                <div class="grid gap-2">
+                    <label for="importance" class="text-sm font-medium">Niveau d'importance</label>
+                    <select name="importance" id="importance" class="w-full p-2 border rounded-md" required>
+                        {% for importance in importance_choices %}
+                        <option value="{{ importance.0 }}" {% if folder.importance == importance.0 %}selected{% endif %}>{{ importance.1 }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="flex items-center space-x-3 p-4 border rounded-md">
+                    <input type="checkbox" id="est_public" name="est_public" class="rounded border-gray-300" {% if folder.est_public %}checked{% endif %}>
+                    <label for="est_public" class="text-sm font-medium">Rendre public</label>
+                </div>
+            </div>
+            <div class="pt-4 flex justify-end space-x-3 border-t">
+                <a href="{% url 'archives' %}" class="px-4 py-2 border rounded-md hover:bg-gray-50">Annuler</a>
+                <button type="submit" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90">Enregistrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

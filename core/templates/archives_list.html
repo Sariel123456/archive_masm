@@ -1,0 +1,386 @@
+{% extends 'base_2.html' %}
+{% load static %}
+
+{% block content %}
+<div class="flex min-h-screen flex-col">
+    <div class="bg-muted/30 py-8">
+        <div class="container">
+            <div class="flex items-center gap-4">
+                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                    <!-- icône inchangée -->
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6" style="color: #3b82f6;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight">Archives</h1>
+                    <p class="text-sm text-muted-foreground">
+                        Explorez et gérez les documents archivés
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-8">
+        <form method="get" class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-4">
+            <div class="flex-1 md:max-w-md">
+                <input type="text" name="search" value="{{ search_query }}" placeholder="Rechercher par titre ou créateur..." class="w-full pl-10 pr-4 py-2 border rounded-md" />
+            </div>
+            <div class="flex gap-2">
+                <a href="{% url 'add_archive' %}" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90">
+                    <!-- icône inchangée -->
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Nouvelle archive
+                </a>
+            </div>
+        </form>
+
+        <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <select name="structure" class="w-full p-2 border rounded-md">
+                <option value="">Toutes les structures</option>
+                {% for structure in structures %}
+                <option value="{{ structure.id }}" {% if structure_filter == structure.id|stringformat:"s" %}selected{% endif %}>{{ structure.nom }}</option>
+                {% endfor %}
+            </select>
+            <select name="type" class="w-full p-2 border rounded-md">
+                <option value="">Tous les types</option>
+                <optgroup label="Types de dossiers">
+                    {% for type in folder_types %}
+                    <option value="folder_{{ type.id }}" {% if type_filter == 'folder_'|add:type.id|stringformat:"s" %}selected{% endif %}>{{ type.nom }}</option>
+                    {% endfor %}
+                </optgroup>
+                <optgroup label="Types de pièces">
+                    {% for type in piece_types %}
+                    <option value="piece_{{ type.id }}" {% if type_filter == 'piece_'|add:type.id|stringformat:"s" %}selected{% endif %}>{{ type.nom }}</option>
+                    {% endfor %}
+                </optgroup>
+            </select>
+            <select name="importance" class="w-full p-2 border rounded-md">
+                <option value="">Toutes les importances</option>
+                {% for importance in importance_choices %}
+                <option value="{{ importance.0 }}" {% if importance_filter == importance.0 %}selected{% endif %}>{{ importance.1 }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90">Filtrer</button>
+        </form>
+
+        <div>
+            <div class="flex justify-between mb-4">
+                <div class="flex items-center gap-2">
+                    <button id="tabGrid" class="px-3 py-2 rounded-md border bg-primary text-white" onclick="showTab('grid'); return false;" style="display: flex;">
+                        <!-- icône inchangée -->
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+                        </svg>
+                        Grille
+                    </button>
+                    <button id="tabList" class="px-3 py-2 rounded-md border" onclick="showTab('list'); return false;" style="display: flex;">
+                        <!-- icône inchangée -->
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                        </svg>
+                        Liste
+                    </button>
+                </div>
+                <div class="text-sm text-muted-foreground">
+                    {{ page_obj.paginator.count }} document{{ page_obj.paginator.count|pluralize }} trouvé{{ page_obj.paginator.count|pluralize }}
+                </div>
+            </div>
+
+            <div id="tabContentGrid">
+                {% if page_obj %}
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {% for item in page_obj %}
+                        {% if item.dossier_date %}
+                            {# Dossier #}
+                            <div class="bg-white rounded-lg border shadow p-4 flex flex-col gap-2">
+                                <div class="flex items-center gap-2">
+                                    <!-- icône inchangée -->
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
+                                    </svg>
+                                    <span class="font-bold">{{ item.titre }}</span>
+                                </div>
+                                <div class="text-xs text-muted-foreground">{{ item.direction.nom }}</div>
+                                <div>
+                                    <span class="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                                        {{ item.get_importance_display }}
+                                    </span>
+                                    {% if item.est_public %}
+                                        <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">Public</span>
+                                    {% else %}
+                                        <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">Privé</span>
+                                    {% endif %}
+                                </div>
+                                <div class="text-xs flex items-center gap-1 text-gray-500 mt-2">
+                                    <!-- icône inchangée -->
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                                    </svg>
+                                    {{ item.dossier_date|date:"d/m/Y" }}
+                                </div>
+                                <div class="flex gap-2 mt-2">
+                                    <a href="{% url 'folder_detail' item.id %}" class="text-blue-600 hover:underline text-xs">
+                                        <!-- icône inchangée -->
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                        </svg>
+                                        Consulter</a>
+                                    {% if item.can_edit %}
+                                    <a href="{% url 'edit_folder' item.id %}" class="text-orange-600 hover:underline text-xs">
+                                        <!-- icône inchangée -->
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                        </svg>
+                                        Modifier</a>
+                                    {% endif %}
+                                    {% if item.can_delete %}
+                                    <a href="{% url 'delete_folder' item.id %}" class="text-red-600 hover:underline text-xs">
+                                        <!-- icône inchangée -->
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                        </svg>
+                                        Supprimer</a>
+                                    {% endif %}
+                                    {% if item.can_perm %}
+                                    <a href="{% url 'folder_permissions' item.id %}" class="text-green-600 hover:underline text-xs">
+                                        <!-- icône inchangée -->
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.25-8.25-3.286Zm0 13.036h.008v.008H12v-.008Z" />
+                                        </svg>
+                                        Permissions</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% else %}
+                            {# Pièce #}
+                            <div class="bg-white rounded-lg border shadow p-4 flex flex-col gap-2">
+                                <div class="flex items-center gap-2">
+                                    <!-- icône inchangée -->
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                                    </svg>
+                                    <span class="font-bold">{{ item.titre }}</span>
+                                </div>
+                                <div class="text-xs text-muted-foreground">{{ item.entite }}</div>
+                                <div>
+                                    <span class="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                                        {{ item.get_importance_display }}
+                                    </span>
+                                    {% if item.est_public %}
+                                        <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">Public</span>
+                                    {% else %}
+                                        <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">Privé</span>
+                                    {% endif %}
+                                </div>
+                                <div class="text-xs flex items-center gap-1 text-gray-500 mt-2">
+                                    <!-- icône inchangée -->
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                                    </svg>
+                                    {{ item.piece_date|date:"d/m/Y" }}
+                                </div>
+                                <div class="flex gap-2 mt-2">
+                                    <a href="{% url 'view_piece' item.id %}" class="text-blue-600 hover:underline text-xs" target="_blank">
+                                        <!-- icône inchangée -->
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                        </svg>
+                                        Consulter</a>
+                                    {% if item.can_edit %}
+                                    <a href="{% url 'edit_piece' item.id %}" class="text-orange-600 hover:underline text-xs">
+                                        <!-- icône inchangée -->
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                        </svg>
+                                        Modifier</a>
+                                    {% endif %}
+                                    {% if item.can_delete %}
+                                    <a href="{% url 'delete_piece' item.id %}" class="text-red-600 hover:underline text-xs">
+                                        <!-- icône inchangée -->
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                        </svg>
+                                        Supprimer</a>
+                                    {% endif %}
+                                    {% if item.can_perm %}
+                                    <a href="{% url 'piece_permissions' item.id %}" class="text-green-600 hover:underline text-xs">
+                                        <!-- icône inchangée -->
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.25-8.25-3.286Zm0 13.036h.008v.008H12v-.008Z" />
+                                        </svg>
+                                        Permissions</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="flex flex-col items-center justify-center py-12 text-center">
+                    <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                        <svg class="h-8 w-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                    </div>
+                    <h3 class="mb-2 text-xl font-semibold tracking-tight">
+                        Aucun document trouvé
+                    </h3>
+                    <p class="mb-4 max-w-md text-muted-foreground">
+                        Aucun document ne correspond à votre recherche. Essayez de modifier vos filtres ou votre requête de recherche.
+                    </p>
+                    <a href="{% url 'archives' %}" class="px-4 py-2 border rounded-md hover:bg-gray-50">Effacer les filtres</a>
+                </div>
+                {% endif %}
+            </div>
+
+            <div id="tabContentList" style="display:none;">
+                {% if page_obj %}
+                <div class="overflow-hidden rounded-lg border shadow">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b bg-muted/50">
+                                    <th class="px-4 py-3 text-left text-sm font-medium">Titre</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium">Structure/Entité</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium">Date</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium">Importance</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium">Statut</th>
+                                    <th class="px-4 py-3 text-right text-sm font-medium">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in page_obj %}
+                                    {% if item.dossier_date %}
+                                    <tr class="border-b hover:bg-muted/40 transition-colors">
+                                        <td class="px-4 py-3 font-medium">{{ item.titre }}</td>
+                                        <td class="px-4 py-3 text-sm">{{ item.direction.nom }}</td>
+                                        <td class="px-4 py-3 text-sm">{{ item.dossier_date|date:"d/m/Y" }}</td>
+                                        <td class="px-4 py-3">
+                                            <span class="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                                                {{ item.get_importance_display }}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-3 text-sm">
+                                            {% if item.est_public %}
+                                                <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">Public</span>
+                                            {% else %}
+                                                <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">Privé</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-4 py-3 text-right">
+                                            <a href="{% url 'folder_detail' item.id %}" class="text-blue-600 hover:underline text-xs">Consulter</a>
+                                            {% if item.can_edit %}
+                                            <a href="{% url 'edit_folder' item.id %}" class="text-blue-600 hover:underline text-xs ml-2">Modifier</a>
+                                            {% endif %}
+                                            {% if item.can_delete %}
+                                            <a href="{% url 'delete_folder' item.id %}" class="text-red-600 hover:underline text-xs ml-2">Supprimer</a>
+                                            {% endif %}
+                                            {% if item.can_perm %}
+                                            <a href="{% url 'folder_permissions' item.id %}" class="text-green-600 hover:underline text-xs ml-2">Permissions</a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr class="border-b hover:bg-muted/40 transition-colors">
+                                        <td class="px-4 py-3 font-medium">{{ item.titre }}</td>
+                                        <td class="px-4 py-3 text-sm">{{ item.entite }}</td>
+                                        <td class="px-4 py-3 text-sm">{{ item.piece_date|date:"d/m/Y" }}</td>
+                                        <td class="px-4 py-3">
+                                            <span class="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                                                {{ item.get_importance_display }}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-3 text-sm">
+                                            {% if item.est_public %}
+                                                <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">Public</span>
+                                            {% else %}
+                                                <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">Privé</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-4 py-3 text-right">
+                                            <a href="{% url 'view_piece' item.id %}" class="text-blue-600 hover:underline text-xs" target="_blank">Consulter</a>
+                                            {% if item.can_edit %}
+                                            <a href="{% url 'edit_piece' item.id %}" class="text-blue-600 hover:underline text-xs ml-2">Modifier</a>
+                                            {% endif %}
+                                            {% if item.can_delete %}
+                                            <a href="{% url 'delete_piece' item.id %}" class="text-red-600 hover:underline text-xs ml-2">Supprimer</a>
+                                            {% endif %}
+                                            {% if item.can_perm %}
+                                            <a href="{% url 'piece_permissions' item.id %}" class="text-green-600 hover:underline text-xs ml-2">Permissions</a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% else %}
+                <div class="flex flex-col items-center justify-center py-12 text-center">
+                    <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                        <svg class="h-8 w-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                    </div>
+                    <h3 class="mb-2 text-xl font-semibold tracking-tight">
+                        Aucun document trouvé
+                    </h3>
+                    <p class="mb-4 max-w-md text-muted-foreground">
+                        Aucun document ne correspond à votre recherche. Essayez de modifier vos filtres ou votre requête de recherche.
+                    </p>
+                    <a href="{% url 'archives' %}" class="px-4 py-2 border rounded-md hover:bg-gray-50">Effacer les filtres</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% if is_paginated %}
+<div class="flex justify-center mt-8">
+    <nav class="inline-flex rounded-md shadow-sm" aria-label="Pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}{% if structure_filter %}&structure={{ structure_filter }}{% endif %}{% if importance_filter %}&importance={{ importance_filter }}{% endif %}"
+               class="px-3 py-2 border rounded-l-md bg-white hover:bg-gray-50 text-primary">Précédent</a>
+        {% else %}
+            <span class="px-3 py-2 border rounded-l-md bg-gray-100 text-gray-400 cursor-not-allowed">Précédent</span>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <span class="px-3 py-2 border-t border-b bg-primary text-white">{{ num }}</span>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}{% if structure_filter %}&structure={{ structure_filter }}{% endif %}{% if importance_filter %}&importance={{ importance_filter }}{% endif %}"
+                   class="px-3 py-2 border-t border-b bg-white hover:bg-gray-50 text-primary">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}{% if structure_filter %}&structure={{ structure_filter }}{% endif %}{% if importance_filter %}&importance={{ importance_filter }}{% endif %}"
+               class="px-3 py-2 border rounded-r-md bg-white hover:bg-gray-50 text-primary">Suivant</a>
+        {% else %}
+            <span class="px-3 py-2 border rounded-r-md bg-gray-100 text-gray-400 cursor-not-allowed">Suivant</span>
+        {% endif %}
+    </nav>
+</div>
+{% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+function showTab(tab) {
+    document.getElementById('tabContentGrid').style.display = tab === 'grid' ? '' : 'none';
+    document.getElementById('tabContentList').style.display = tab === 'list' ? '' : 'none';
+    document.getElementById('tabGrid').classList.toggle('bg-primary', tab === 'grid');
+    document.getElementById('tabGrid').classList.toggle('text-white', tab === 'grid');
+    document.getElementById('tabList').classList.toggle('bg-primary', tab === 'list');
+    document.getElementById('tabList').classList.toggle('text-white', tab === 'list');
+}
+showTab('grid');
+</script>
+{% endblock %}

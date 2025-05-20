@@ -1,0 +1,17 @@
+<!-- filepath: core/templates/delete_service.html -->
+{% extends 'base_2.html' %}
+{% block content %}
+<div class="max-w-lg mx-auto py-12">
+    <div class="bg-white rounded-lg border shadow p-8 text-center">
+        <h2 class="text-xl font-semibold mb-4">Supprimer le service</h2>
+        <p class="mb-6">Êtes-vous sûr de vouloir supprimer le service <strong>{{ service.nom }}</strong> ? Cette action est irréversible.</p>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="flex justify-center gap-4">
+                <a href="{% url 'organisation' %}" class="px-4 py-2 border rounded-md hover:bg-gray-50">Annuler</a>
+                <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Supprimer</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,9 @@
+Django>=4.2,<5.0
+python-dotenv
+cryptography
+# Pour le support de SQLite (inclus par défaut avec Python)
+# Pour le développement, tu peux ajouter :
+ipython
+# Pour les tests
+pytest
+pytest-django

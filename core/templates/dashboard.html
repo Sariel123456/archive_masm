@@ -1,0 +1,142 @@
+<!-- filepath: core/templates/dashboard.html -->
+{% extends 'base_2.html' %}
+{% load static %}
+
+{% block content %}
+<div class="space-y-6 pb-8">
+    <!-- En-tête du tableau de bord -->
+    <div class="flex justify-between items-center">
+        <h1 class="text-3xl font-bold tracking-tight">Tableau de Bord</h1>
+    </div>
+
+    <!-- Cartes statistiques -->
+    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <!-- Archives totales -->
+        <div class="p-6 bg-white rounded-lg shadow-lg">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-medium">Archives Totales</h3>
+            </div>
+            <div class="text-2xl font-bold">{{ archive_count }}</div>
+            <p class="text-xs text-gray-500">Documents archivés dans le système</p>
+        </div>
+        <!-- Dossiers -->
+        <div class="p-6 bg-white rounded-lg shadow-lg">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-medium">Dossiers</h3>
+            </div>
+            <div class="text-2xl font-bold">{{ folder_count }}</div>
+            <p class="text-xs text-gray-500">Nombre de dossiers</p>
+        </div>
+        <!-- Pièces -->
+        <div class="p-6 bg-white rounded-lg shadow-lg">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-medium">Pièces</h3>
+            </div>
+            <div class="text-2xl font-bold">{{ piece_count }}</div>
+            <p class="text-xs text-gray-500">Nombre de pièces</p>
+        </div>
+        <!-- Corbeille -->
+        <div class="p-6 bg-white rounded-lg shadow-lg">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-medium">Corbeille</h3>
+            </div>
+            <div class="text-2xl font-bold">{{ trash_count }}</div>
+            <p class="text-xs text-gray-500">Archives supprimées</p>
+        </div>
+        <!-- Public/Privé -->
+        <div class="p-6 bg-white rounded-lg shadow-lg">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-medium">Archives Publiques</h3>
+            </div>
+            <div class="text-2xl font-bold">{{ public_count }}</div>
+            <p class="text-xs text-gray-500">Visibles par tous</p>
+        </div>
+        <div class="p-6 bg-white rounded-lg shadow-lg">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-medium">Archives Privées</h3>
+            </div>
+            <div class="text-2xl font-bold">{{ private_count }}</div>
+            <p class="text-xs text-gray-500">Restreintes</p>
+        </div>
+    </div>
+
+    <!-- Graphiques et Activités -->
+    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+        <!-- Graphique -->
+        <div class="col-span-4 bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-lg font-semibold mb-2">Distribution des Archives par Importance</h3>
+            <p class="text-sm text-gray-500 mb-4">Répartition des documents archivés selon leur niveau d'importance</p>
+            <div class="h-[300px]">
+                <canvas id="archiveChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Activités Récentes Dossiers -->
+        <div class="col-span-3 bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-lg font-semibold mb-2">Activités Récentes sur les Dossiers</h3>
+            <div class="space-y-2">
+                {% for activity in recent_folder_activities %}
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="font-semibold">{{ activity.utilisateur.get_full_name }}</span>
+                        <span class="text-xs text-gray-500 ml-2">{{ activity.get_action_type_display }}</span>
+                        <span class="text-xs text-gray-400 ml-2">{{ activity.action_date|date:"j M H:i" }}</span>
+                    </div>
+                    <div>
+                        <span class="text-sm text-gray-700">{{ activity.dossier.titre }}</span>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-gray-400 text-sm">Aucune activité récente</div>
+                {% endfor %}
+            </div>
+        </div>
+        <!-- Activités Récentes Pièces -->
+        <div class="col-span-3 bg-white rounded-lg shadow-lg p-6 mt-4">
+            <h3 class="text-lg font-semibold mb-2">Activités Récentes sur les Pièces</h3>
+            <div class="space-y-2">
+                {% for activity in recent_piece_activities %}
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="font-semibold">{{ activity.utilisateur.get_full_name }}</span>
+                        <span class="text-xs text-gray-500 ml-2">{{ activity.get_action_type_display }}</span>
+                        <span class="text-xs text-gray-400 ml-2">{{ activity.action_date|date:"j M H:i" }}</span>
+                    </div>
+                    <div>
+                        <span class="text-sm text-gray-700">{{ activity.piece.titre }}</span>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-gray-400 text-sm">Aucune activité récente</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('archiveChart').getContext('2d');
+    const archiveChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Faible', 'Moyenne', 'Élevée', 'Critique'],
+            datasets: [{
+                data: {{ importance_counts|safe }},
+                backgroundColor: [
+                    '#10B981',
+                    '#F59E0B',
+                    '#EF4444',
+                    '#7F1D1D'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,21 @@
+<!-- filepath: core/templates/edit_piece.html -->
+{% extends 'base_2.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto py-8">
+    <div class="bg-white rounded-lg border shadow">
+        <div class="p-6 border-b">
+            <h2 class="text-xl font-semibold">Modifier le document</h2>
+        </div>
+        <form method="POST" enctype="multipart/form-data" class="p-6 space-y-6">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="pt-4 flex justify-end space-x-3 border-t">
+                <a href="{% url 'archives' %}" class="px-4 py-2 border rounded-md hover:bg-gray-50">Annuler</a>
+                <button type="submit" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90">Enregistrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,47 @@
+<!-- filepath: core/templates/add_edit_poste.html -->
+{% extends 'base_2.html' %}
+{% block content %}
+<div class="max-w-lg mx-auto py-8">
+    <div class="bg-white rounded-lg border shadow">
+        <div class="p-6 border-b">
+            <h2 class="text-xl font-semibold">{% if poste %}Modifier{% else %}Ajouter{% endif %} un poste</h2>
+        </div>
+        <form method="POST" class="p-6 space-y-6">
+            {% csrf_token %}
+            <div class="grid gap-4">
+                <div>
+                    <label class="text-sm font-medium">Nom</label>
+                    <input type="text" name="nom" value="{{ poste.nom|default_if_none:'' }}" required class="w-full p-2 border rounded-md">
+                </div>
+                <div>
+                    <label class="text-sm font-medium">Service</label>
+                    <select name="service" required class="w-full p-2 border rounded-md">
+                        <option value="">Sélectionner un service</option>
+                        {% for service in services %}
+                        <option value="{{ service.id }}" {% if poste and poste.service.id == service.id %}selected{% endif %}>{{ service.nom }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="text-sm font-medium">Description</label>
+                    <textarea name="description" rows="3" class="w-full p-2 border rounded-md">{{ poste.description|default_if_none:'' }}</textarea>
+                </div>
+                <div class="flex gap-4">
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" name="est_chef" {% if poste and poste.est_chef %}checked{% endif %}>
+                        Chef de service
+                    </label>
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" name="est_occupe" {% if poste and poste.est_occupe %}checked{% endif %}>
+                        Occupé
+                    </label>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-4 border-t">
+                <a href="{% url 'organisation' %}" class="px-4 py-2 border rounded-md hover:bg-gray-50">Annuler</a>
+                <button type="submit" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90">{% if poste %}Enregistrer{% else %}Ajouter{% endif %}</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

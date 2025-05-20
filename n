@@ -1,0 +1,300 @@
+{% extends 'base_2.html' %}
+{% load static %}
+
+{% block content %}
+<div class="flex min-h-screen flex-col">
+    <div class="bg-muted/30 py-8">
+        <div class="container">
+            <div class="flex items-center gap-4">
+                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                    
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6" style="color: #3b82f6;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                      </svg>
+                      
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight">Archives</h1>
+                    <p class="text-sm text-muted-foreground">
+                        Explorez et gérez les documents archivés
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-8">
+        <form method="get" class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-4">
+            <div class="flex-1 md:max-w-md">
+                <input type="text" name="search" value="{{ search_query }}" placeholder="Rechercher par titre ou créateur..." class="w-full pl-10 pr-4 py-2 border rounded-md" />
+            </div>
+            <div class="flex gap-2">
+                <a href="{% url 'add_archive' %}" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Nouvelle archive
+                </a>
+            </div>
+        </form>
+
+        <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <select name="structure" class="w-full p-2 border rounded-md">
+                <option value="">Toutes les structures</option>
+                {% for structure in structures %}
+                <option value="{{ structure.id }}" {% if structure_filter == structure.id|stringformat:"s" %}selected{% endif %}>{{ structure.nom }}</option>
+                {% endfor %}
+            </select>
+            <select name="type" class="w-full p-2 border rounded-md">
+                <option value="">Tous les types</option>
+                <optgroup label="Types de dossiers">
+                    {% for type in folder_types %}
+                    <option value="folder_{{ type.id }}" {% if type_filter == 'folder_'|add:type.id|stringformat:"s" %}selected{% endif %}>{{ type.nom }}</option>
+                    {% endfor %}
+                </optgroup>
+                <optgroup label="Types de pièces">
+                    {% for type in piece_types %}
+                    <option value="piece_{{ type.id }}" {% if type_filter == 'piece_'|add:type.id|stringformat:"s" %}selected{% endif %}>{{ type.nom }}</option>
+                    {% endfor %}
+                </optgroup>
+            </select>
+            <select name="importance" class="w-full p-2 border rounded-md">
+                <option value="">Toutes les importances</option>
+                {% for importance in importance_choices %}
+                <option value="{{ importance.0 }}" {% if importance_filter == importance.0 %}selected{% endif %}>{{ importance.1 }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90">Filtrer</button>
+        </form>
+
+        <div>
+            <div class="flex justify-between mb-4">
+                <div class="flex items-center gap-2">
+                    <button id="tabGrid" class="px-3 py-2 rounded-md border bg-primary text-white" onclick="showTab('grid'); return false;" style="display: flex;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+                      </svg>
+                      Grille</button>
+                    <button id="tabList" class="px-3 py-2 rounded-md border" onclick="showTab('list'); return false;" style="display: flex;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                      </svg>
+                      Liste</button>
+                </div>
+                <div class="text-sm text-muted-foreground">
+                    {{ folders|length|add:pieces|length }} document{{ folders|length|add:pieces|length|pluralize }} trouvé{{ folders|length|add:pieces|length|pluralize }}
+                </div>
+            </div>
+
+            <div id="tabContentGrid">
+                {% if folders or pieces %}
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {% for folder in folders %}
+                    <div class="bg-white rounded-lg border shadow p-4 flex flex-col gap-2">
+                        <div class="flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
+                              </svg>
+                              
+                            <span class="font-bold">{{ folder.titre }}</span>
+                        </div>
+                        <div class="text-xs text-muted-foreground">{{ folder.direction.nom }}</div>
+                        <div class="text-xs">{{ folder.dossier_date|date:"d/m/Y" }}</div>
+                        <div>
+                            <span class="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                                {{ folder.get_importance_display }}
+                            </span>
+                        </div>
+                        <div>
+                            {% if folder.est_public %}
+                                <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">Public</span>
+                            {% else %}
+                                <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">Privé</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex gap-2 mt-2">
+                            <a href="{% url 'folder_detail' folder.id %}" class="text-blue-600 hover:underline text-xs">Consulter</a>
+                            {% if folder.can_edit %}
+                            <a href="{% url 'edit_folder' folder.id %}" class="text-blue-600 hover:underline text-xs">Modifier</a>
+                            {% endif %}
+                            {% if folder.can_delete %}
+                            <a href="{% url 'delete_folder' folder.id %}" class="text-red-600 hover:underline text-xs">Supprimer</a>
+                            {% endif %}
+                            {% if folder.can_perm %}
+                            <a href="{% url 'folder_permissions' folder.id %}" class="text-green-600 hover:underline text-xs">Permissions</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% for piece in pieces %}
+                    <div class="bg-white rounded-lg border shadow p-4 flex flex-col gap-2">
+                        <div class="flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                              </svg>
+                              
+                            <span class="font-bold">{{ piece.titre }}</span>
+                        </div>
+                        <div class="text-xs text-muted-foreground">{{ piece.entite }}</div>
+                        <div class="text-xs">{{ piece.piece_date|date:"d/m/Y" }}</div>
+                        <div>
+                            <span class="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                                {{ piece.get_importance_display }}
+                            </span>
+                        </div>
+                        <div>
+                            {% if piece.est_public %}
+                                <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">Public</span>
+                            {% else %}
+                                <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">Privé</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex gap-2 mt-2">
+                            <a href="{% url 'view_piece' piece.id %}" class="text-blue-600 hover:underline text-xs" target="_blank">Consulter</a>
+                            {% if piece.can_edit %}
+                            <a href="{% url 'edit_piece' piece.id %}" class="text-blue-600 hover:underline text-xs">Modifier</a>
+                            {% endif %}
+                            {% if piece.can_delete %}
+                            <a href="{% url 'delete_piece' piece.id %}" class="text-red-600 hover:underline text-xs">Supprimer</a>
+                            {% endif %}
+                            {% if piece.can_perm %}
+                            <a href="{% url 'piece_permissions' piece.id %}" class="text-green-600 hover:underline text-xs">Permissions</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="flex flex-col items-center justify-center py-12 text-center">
+                    <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                        <svg class="h-8 w-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                    </div>
+                    <h3 class="mb-2 text-xl font-semibold tracking-tight">
+                        Aucun document trouvé
+                    </h3>
+                    <p class="mb-4 max-w-md text-muted-foreground">
+                        Aucun document ne correspond à votre recherche. Essayez de modifier vos filtres ou votre requête de recherche.
+                    </p>
+                    <a href="{% url 'archives' %}" class="px-4 py-2 border rounded-md hover:bg-gray-50">Effacer les filtres</a>
+                </div>
+                {% endif %}
+            </div>
+
+            <div id="tabContentList" style="display:none;">
+                {% if folders or pieces %}
+                <div class="overflow-hidden rounded-lg border shadow">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b bg-muted/50">
+                                    <th class="px-4 py-3 text-left text-sm font-medium">Titre</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium">Structure/Entité</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium">Date</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium">Importance</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium">Statut</th>
+                                    <th class="px-4 py-3 text-right text-sm font-medium">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for folder in folders %}
+                                <tr class="border-b hover:bg-muted/40 transition-colors">
+                                    <td class="px-4 py-3 font-medium">{{ folder.titre }}</td>
+                                    <td class="px-4 py-3 text-sm">{{ folder.direction.nom }}</td>
+                                    <td class="px-4 py-3 text-sm">{{ folder.dossier_date|date:"d/m/Y" }}</td>
+                                    <td class="px-4 py-3">
+                                        <span class="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                                            {{ folder.get_importance_display }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3 text-sm">
+                                        {% if folder.est_public %}
+                                            <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">Public</span>
+                                        {% else %}
+                                            <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">Privé</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-4 py-3 text-right">
+                                        <a href="{% url 'folder_detail' folder.id %}" class="text-blue-600 hover:underline text-xs">Consulter</a>
+                                        {% if folder.can_edit %}
+                                        <a href="{% url 'edit_folder' folder.id %}" class="text-blue-600 hover:underline text-xs ml-2">Modifier</a>
+                                        {% endif %}
+                                        {% if folder.can_delete %}
+                                        <a href="{% url 'delete_folder' folder.id %}" class="text-red-600 hover:underline text-xs ml-2">Supprimer</a>
+                                        {% endif %}
+                                        {% if folder.can_perm %}
+                                        <a href="{% url 'folder_permissions' folder.id %}" class="text-green-600 hover:underline text-xs ml-2">Permissions</a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                {% for piece in pieces %}
+                                <tr class="border-b hover:bg-muted/40 transition-colors">
+                                    <td class="px-4 py-3 font-medium">{{ piece.titre }}</td>
+                                    <td class="px-4 py-3 text-sm">{{ piece.entite }}</td>
+                                    <td class="px-4 py-3 text-sm">{{ piece.piece_date|date:"d/m/Y" }}</td>
+                                    <td class="px-4 py-3">
+                                        <span class="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                                            {{ piece.get_importance_display }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3 text-sm">
+                                        {% if piece.est_public %}
+                                            <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">Public</span>
+                                        {% else %}
+                                            <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">Privé</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-4 py-3 text-right">
+                                        <a href="{% url 'view_piece' piece.id %}" class="text-blue-600 hover:underline text-xs" target="_blank">Consulter</a>
+                                        {% if piece.can_edit %}
+                                        <a href="{% url 'edit_piece' piece.id %}" class="text-blue-600 hover:underline text-xs ml-2">Modifier</a>
+                                        {% endif %}
+                                        {% if piece.can_delete %}
+                                        <a href="{% url 'delete_piece' piece.id %}" class="text-red-600 hover:underline text-xs ml-2">Supprimer</a>
+                                        {% endif %}
+                                        {% if piece.can_perm %}
+                                        <a href="{% url 'piece_permissions' piece.id %}" class="text-green-600 hover:underline text-xs ml-2">Permissions</a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% else %}
+                <div class="flex flex-col items-center justify-center py-12 text-center">
+                    <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                        <svg class="h-8 w-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                    </div>
+                    <h3 class="mb-2 text-xl font-semibold tracking-tight">
+                        Aucun document trouvé
+                    </h3>
+                    <p class="mb-4 max-w-md text-muted-foreground">
+                        Aucun document ne correspond à votre recherche. Essayez de modifier vos filtres ou votre requête de recherche.
+                    </p>
+                    <a href="{% url 'archives' %}" class="px-4 py-2 border rounded-md hover:bg-gray-50">Effacer les filtres</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+function showTab(tab) {
+    document.getElementById('tabContentGrid').style.display = tab === 'grid' ? '' : 'none';
+    document.getElementById('tabContentList').style.display = tab === 'list' ? '' : 'none';
+    document.getElementById('tabGrid').classList.toggle('bg-primary', tab === 'grid');
+    document.getElementById('tabGrid').classList.toggle('text-white', tab === 'grid');
+    document.getElementById('tabList').classList.toggle('bg-primary', tab === 'list');
+    document.getElementById('tabList').classList.toggle('text-white', tab === 'list');
+}
+showTab('grid');
+</script>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends 'base_2.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-lg mx-auto py-12">
+    <div class="bg-white rounded-lg border shadow p-8 text-center">
+        <h2 class="text-xl font-semibold mb-4">Supprimer le dossier</h2>
+        <p class="mb-6">Êtes-vous sûr de vouloir supprimer le dossier <strong>{{ folder.titre }}</strong> ? Cette action est irréversible.</p>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label for="justification" class="block text-sm font-medium mb-1">Justification (20 caractères minimum)</label>
+                <textarea name="justification" id="justification" rows="3" required minlength="20" class="w-full border rounded-md p-2"></textarea>
+            </div>
+            <div class="flex justify-center gap-4">
+                <a href="{% url 'archives' %}" class="px-4 py-2 border rounded-md hover:bg-gray-50">Annuler</a>
+                <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Supprimer</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

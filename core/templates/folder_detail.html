@@ -1,0 +1,152 @@
+{% extends 'base_2.html' %}
+{% block content %}
+<div class="space-y-6">
+    <h1 class="text-2xl font-semibold">{{ folder.titre }}</h1>
+    <p class="text-gray-500">{{ folder.description }}</p>
+
+    <!-- Métadonnées du dossier -->
+    <div class="bg-white rounded-lg border shadow p-6">
+        <h3 class="text-lg font-semibold mb-4">Métadonnées</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <span class="font-medium">Type :</span>
+                <span>{{ folder.dossier_parent.nom }}</span>
+            </div>
+            <div>
+                <span class="font-medium">Structure :</span>
+                <span>{{ folder.direction.nom }}</span>
+            </div>
+            <div>
+                <span class="font-medium">Provenance :</span>
+                <span>{{ folder.provenance }}</span>
+            </div>
+            <div>
+                <span class="font-medium">Date du dossier :</span>
+                <span>{{ folder.dossier_date|date:"d/m/Y" }}</span>
+            </div>
+            <div>
+                <span class="font-medium">Importance :</span>
+                <span class="
+                    inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                    {% if folder.importance == 'faible' %}bg-blue-100 text-blue-800
+                    {% elif folder.importance == 'moyenne' %}bg-green-100 text-green-800
+                    {% elif folder.importance == 'elevee' %}bg-orange-100 text-orange-800
+                    {% elif folder.importance == 'critique' %}bg-red-100 text-red-800
+                    {% else %}bg-gray-100 text-gray-800{% endif %}
+                ">
+                    {{ folder.get_importance_display }}
+                </span>
+            </div>
+            <div>
+                <span class="font-medium">Visibilité :</span>
+                {% if folder.est_public %}
+                    <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">Public</span>
+                {% else %}
+                    <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">Privé</span>
+                {% endif %}
+            </div>
+            <div>
+                <span class="font-medium">Créé par :</span>
+                <span>{{ folder.createur.get_full_name|default:folder.createur.email }}</span>
+            </div>
+            <div>
+                <span class="font-medium">Date de création :</span>
+                <span>{{ folder.creation_date|date:"d/m/Y H:i" }}</span>
+            </div>
+            <div>
+                <span class="font-medium">Dernière modification :</span>
+                <span>{{ folder.derniere_modification|date:"d/m/Y H:i" }}</span>
+            </div>
+            <div>
+                <span class="font-medium">Mots-clés :</span>
+                {% for kw in folder.keyword.all %}
+                    <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full mr-1">{{ kw.nom }}</span>
+                {% empty %}
+                    <span class="text-gray-400">Aucun</span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Pièces du dossier -->
+    <div class="bg-white rounded-lg border shadow p-6">
+        <h3 class="text-lg font-semibold mb-4">Pièces du dossier</h3>
+        <ul>
+            {% for piece in pieces %}
+            <li class="mb-2">
+                <span class="font-medium">{{ piece.titre }}</span>
+                <span class="text-xs text-gray-500 ml-2">{{ piece.piece_date|date:"d/m/Y" }}</span>
+                <span class="text-xs ml-2
+                    {% if piece.importance == 'faible' %}bg-blue-100 text-blue-800
+                    {% elif piece.importance == 'moyenne' %}bg-green-100 text-green-800
+                    {% elif piece.importance == 'elevee' %}bg-orange-100 text-orange-800
+                    {% elif piece.importance == 'critique' %}bg-red-100 text-red-800
+                    {% else %}bg-gray-100 text-gray-800{% endif %}
+                    px-2 py-0.5 rounded-full font-medium
+                ">
+                    {{ piece.get_importance_display }}
+                </span>
+                <a href="{% url 'view_piece' piece.id %}" target="_blank" class="text-blue-600 hover:underline ml-2">Ouvrir</a>
+            </li>
+            {% empty %}
+            <li class="text-gray-400">Aucune pièce dans ce dossier.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Historique du dossier -->
+    <div class="bg-white rounded-lg border shadow p-6">
+        <h3 class="text-lg font-semibold mb-4">Historique du dossier</h3>
+        <ul>
+            {% for event in history %}
+            <div class="flex items-start gap-3">
+                <div class="
+                    flex h-8 w-8 items-center justify-center rounded-full
+                    {% if event.action_type == 'creation' %} bg-green-100
+                    {% elif event.action_type == 'modification' %} bg-blue-100
+                    {% elif event.action_type == 'consultation' %} bg-yellow-100
+                    {% elif event.action_type == 'suppression' %} bg-red-100
+                    {% else %} bg-primary/10
+                    {% endif %}
+                ">
+                    {% if event.action_type == 'creation' %}
+                        <svg class="h-4 w-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                    {% elif event.action_type == 'modification' %}
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-blue-600">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                      </svg>
+                      
+                    {% elif event.action_type == 'consultation' %}
+                        <svg class="h-4 w-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                    {% elif event.action_type == 'suppression' %}
+                        <svg class="h-4 w-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    {% else %}
+                        <svg class="h-4 w-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    {% endif %}
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-medium">{{ event.utilisateur.get_full_name|default:"Admin" }}</span>
+                        <span class="text-xs text-muted-foreground">{{ event.action_date|date:"j F Y H:i" }}</span>
+                    </div>
+                    <p class="text-sm text-muted-foreground">
+                        {{ event.get_action_type_display }}{% if event.details %} — {{ event.details }}{% endif %}
+                    </p>
+                </div>
+            </div>
+            {% empty %}
+            <li class="text-gray-400">Aucune activité enregistrée.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

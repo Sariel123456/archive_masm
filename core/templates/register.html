@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-b from-blue-50 to-white flex flex-col items-center justify-center p-4">
+    <div class="w-full max-w-md">
+        <!-- En-tête -->
+        <div class="text-center mb-8">
+            <div class="inline-block p-3 bg-primary/10 rounded-full mb-4">
+                <svg class="h-10 w-10 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                </svg>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-800">SARN</h1>
+            <p class="text-gray-600 mt-2">Système d'Archivage et de Référencement Numérique</p>
+            <p class="text-gray-500 text-sm mt-1">Ministère des Affaires Sociales et de la Microfinance</p>
+        </div>
+
+        <!-- Carte d'inscription -->
+        <div class="w-full shadow-lg animate-fade-in bg-white rounded-lg">
+            <div class="p-6">
+                <h2 class="text-xl font-semibold text-center">Inscription</h2>
+                <p class="text-center text-gray-600 mt-2">Créez votre compte pour accéder au système</p>
+            </div>
+            
+            <div class="p-6 pt-0">
+                <form method="POST" action="{% url 'register' %}">
+                    {% csrf_token %}
+                    
+                    {% if form.errors %}
+                    <div class="bg-red-50 text-red-600 p-3 rounded-md mb-4">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                {{ error }}
+                            {% endfor %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="grid gap-4">
+                        <!-- Champ Email -->
+<div class="grid gap-2">
+    <label for="{{ form.email.id_for_label }}" class="text-sm font-medium">
+        Email (@gouv.bj)
+    </label>
+    {{ form.email }}
+    <span class="text-xs text-gray-500">L'adresse email doit se terminer par @gouv.bj</span>
+    {% if form.email.errors %}
+        <div class="text-red-500 text-sm">
+            {% for error in form.email.errors %}
+                {{ error }}
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+                    
+                        <!-- Champ Matricule -->
+                        <div class="grid gap-2">
+                            <label for="{{ form.matricule.id_for_label }}" class="text-sm font-medium">Matricule</label>
+                            {{ form.matricule }}
+                        </div>
+                    
+                        <!-- Champ Nom -->
+                        <div class="grid gap-2">
+                            <label for="{{ form.nom.id_for_label }}" class="text-sm font-medium">Nom</label>
+                            {{ form.nom }}
+                        </div>
+                    
+                        <!-- Champ Prénom -->
+                        <div class="grid gap-2">
+                            <label for="{{ form.prenom.id_for_label }}" class="text-sm font-medium">Prénom</label>
+                            {{ form.prenom }}
+                        </div>
+                    
+                        <!-- Champ Direction -->
+                        <div class="grid gap-2">
+                            <label for="{{ form.direction.id_for_label }}" class="text-sm font-medium">Direction</label>
+                            {{ form.direction }}
+                        </div>
+                    
+                        <!-- Champ Service -->
+                        <div class="grid gap-2">
+                            <label for="{{ form.service.id_for_label }}" class="text-sm font-medium">Service</label>
+                            {{ form.service }}
+                        </div>
+                    
+                        <!-- Champ Poste -->
+                        <div class="grid gap-2">
+                            <label for="{{ form.poste.id_for_label }}" class="text-sm font-medium">Poste</label>
+                            {{ form.poste }}
+                        </div>
+                    
+                        <!-- Champs Mot de passe -->
+                        <div class="grid gap-2">
+                            <label for="{{ form.password1.id_for_label }}" class="text-sm font-medium">Mot de passe</label>
+                            {{ form.password1 }}
+                        </div>
+                    
+                        <div class="grid gap-2">
+                            <label for="{{ form.password2.id_for_label }}" class="text-sm font-medium">Confirmer le mot de passe</label>
+                            {{ form.password2 }}
+                        </div>
+
+                        <button type="submit" class="w-full mt-2 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 flex items-center justify-center">
+                            <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                            </svg>
+                            S'inscrire
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="p-6 border-t text-center text-sm text-gray-500">
+                <p>Déjà un compte ? <a href="{% url 'login' %}" class="text-blue-600 hover:underline">Connectez-vous</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+
+
+    document.getElementById('{{ form.email.id_for_label }}').addEventListener('input', function(e) {
+        const email = e.target.value;
+        const isValid = email.endsWith('@gouv.bj');
+        
+        if (email && !isValid) {
+            e.target.classList.add('border-red-500');
+            e.target.classList.remove('border-green-500');
+        } else if (email && isValid) {
+            e.target.classList.add('border-green-500');
+            e.target.classList.remove('border-red-500');
+        } else {
+            e.target.classList.remove('border-red-500', 'border-green-500');
+        }
+    });
+    $("#id_direction").change(function () {
+        const directionId = $(this).val();
+        $.ajax({
+            url: "{% url 'ajax_load_services' %}",
+            data: {
+                'direction': directionId
+            },
+            success: function (data) {
+                $("#id_service").html('<option value="">---------</option>');
+                data.forEach(function(item) {
+                    $("#id_service").append(
+                        `<option value="${item.id}">${item.nom}</option>`
+                    );
+                });
+                $("#id_poste").html('<option value="">---------</option>');
+            }
+        });
+    });
+
+    $("#id_service").change(function () {
+        const serviceId = $(this).val();
+        $.ajax({
+            url: "{% url 'ajax_load_postes' %}",
+            data: {
+                'service': serviceId
+            },
+            success: function (data) {
+                $("#id_poste").html('<option value="">---------</option>');
+                data.forEach(function(item) {
+                    $("#id_poste").append(
+                        `<option value="${item.id}">${item.nom}</option>`
+                    );
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}
+
+
+</div>
+

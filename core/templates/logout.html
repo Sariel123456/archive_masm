@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-b from-blue-50 to-white flex flex-col items-center justify-center p-4">
+    <div class="w-full max-w-md text-center">
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <div class="inline-block p-3 bg-green-100 rounded-full mb-4">
+                <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+            </div>
+            
+            <h2 class="text-2xl font-semibold mb-2">Déconnexion réussie</h2>
+            <p class="text-gray-600 mb-6">Vous avez été déconnecté avec succès du système.</p>
+            
+            <a href="{% url 'login' %}" class="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                </svg>
+                Retour à la connexion
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

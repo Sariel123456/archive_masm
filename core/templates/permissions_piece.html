@@ -1,0 +1,182 @@
+{% extends 'base_2.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto py-6">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-3xl font-bold">Permissions de la pièce : {{ piece.titre }}</h1>
+        <a href="{% url 'archives' %}" class="text-blue-600 hover:underline">Retour aux archives</a>
+    </div>
+
+    <div class="bg-white rounded-lg shadow mb-6">
+        <div class="p-6 border-b">
+            <h2 class="text-xl font-semibold">Ajouter une permission</h2>
+            <p class="text-gray-500 text-sm">Définir les droits d'accès pour un ou plusieurs postes, directions ou services.</p>
+        </div>
+        <form method="POST" class="p-6 space-y-4" id="permForm">
+            {% csrf_token %}
+            <div class="grid md:grid-cols-3 gap-4">
+                <div>
+                    <label class="text-sm font-medium">Postes</label>
+                    <select id="postes_select" class="w-full p-2 border rounded-md" multiple>
+                        {% for p in postes %}
+                        <option value="{{ p.id }}">{{ p.nom }} ({{ p.service.nom }})</option>
+                        {% endfor %}
+                    </select>
+                    <div id="selected_postes" class="flex flex-wrap gap-2 mt-2"></div>
+                </div>
+                <div>
+                    <label class="text-sm font-medium">Directions</label>
+                    <select id="directions_select" class="w-full p-2 border rounded-md" multiple>
+                        {% for d in directions %}
+                        <option value="{{ d.id }}">{{ d.nom }}</option>
+                        {% endfor %}
+                    </select>
+                    <div id="selected_directions" class="flex flex-wrap gap-2 mt-2"></div>
+                </div>
+                <div>
+                    <label class="text-sm font-medium">Services</label>
+                    <select id="services_select" class="w-full p-2 border rounded-md" multiple>
+                        {% for s in services %}
+                        <option value="{{ s.id }}">{{ s.nom }}</option>
+                        {% endfor %}
+                    </select>
+                    <div id="selected_services" class="flex flex-wrap gap-2 mt-2"></div>
+                </div>
+            </div>
+            <div class="flex gap-6 pt-2">
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" name="peut_lire" class="rounded border-gray-300"> Lire
+                </label>
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" name="peut_editer" class="rounded border-gray-300"> Modifier
+                </label>
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" name="peut_supprime" class="rounded border-gray-300"> Supprimer
+                </label>
+            </div>
+            <div class="flex justify-end pt-4 border-t">
+                <button type="submit" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90">Ajouter</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b flex items-center justify-between">
+            <h2 class="text-xl font-semibold">Permissions existantes</h2>
+        </div>
+        <div class="p-6 overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead>
+                    <tr>
+                        <th class="px-3 py-2 border">Bénéficiaire</th>
+                        <th class="px-3 py-2 border text-center">Lire</th>
+                        <th class="px-3 py-2 border text-center">Éditer</th>
+                        <th class="px-3 py-2 border text-center">Supprimer</th>
+                        <th class="px-3 py-2 border text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for perm in permissions %}
+                    <tr>
+                        <td class="px-3 py-2 border">
+                            {% if perm.beneficiaire %}{{ perm.beneficiaire }}{% elif perm.direction_beneficiaire %}{{ perm.direction_beneficiaire }}{% elif perm.structure_beneficiaire %}{{ perm.structure_beneficiaire }}{% endif %}
+                        </td>
+                        <td class="px-3 py-2 border text-center">
+                            {% if perm.peut_lire %}
+                                <span class="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">✔</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-3 py-2 border text-center">
+                            {% if perm.peut_editer %}
+                                <span class="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">✔</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-3 py-2 border text-center">
+                            {% if perm.peut_supprime %}
+                                <span class="inline-flex items-center px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">✔</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-3 py-2 border text-right">
+                            <form method="POST" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="permission_a_supprimer" value="{{ perm.id }}">
+                                <button type="submit" class="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-xs">Supprimer</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-3 py-2 border text-center text-gray-500">Aucune permission définie</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+function setupMultiSelect(selectId, tagsDivId, inputName) {
+    const select = document.getElementById(selectId);
+    const tagsDiv = document.getElementById(tagsDivId);
+    let selected = new Set();
+
+    function updateTags() {
+        tagsDiv.innerHTML = '';
+        // Supprimer les anciens inputs cachés
+        tagsDiv.parentNode.querySelectorAll('input[type="hidden"].dynamic-multiselect').forEach(e => e.remove());
+        select.querySelectorAll('option').forEach(option => {
+            option.selected = selected.has(option.value);
+        });
+        selected.forEach(val => {
+            if (!val) return;
+            const label = select.querySelector('option[value="'+val+'"]').textContent;
+            const tag = document.createElement('div');
+            tag.className = 'bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full flex items-center';
+            tag.innerHTML = `
+                ${label}
+                <button type="button" class="ml-2 text-blue-600 hover:text-blue-800" onclick="removeTag('${val}', '${selectId}', '${tagsDivId}', '${inputName}')">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            `;
+            tagsDiv.appendChild(tag);
+
+            // Créer un input caché pour chaque valeur sélectionnée
+            if (val) {
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = inputName;
+                hiddenInput.value = val;
+                hiddenInput.className = 'dynamic-multiselect';
+                tagsDiv.parentNode.appendChild(hiddenInput);
+            }
+        });
+    }
+
+    select.addEventListener('change', function(e) {
+        Array.from(select.selectedOptions).forEach(option => {
+            if (option.value) selected.add(option.value);
+        });
+        updateTags();
+    });
+
+    window['removeTag'] = function(val, selectId, tagsDivId, inputName) {
+        selected.delete(val);
+        updateTags();
+    };
+
+    // Initialisation
+    updateTags();
+}
+
+setupMultiSelect('postes_select', 'selected_postes', 'beneficiaires');
+setupMultiSelect('directions_select', 'selected_directions', 'directions');
+setupMultiSelect('services_select', 'selected_services', 'services');
+</script>
+{% endblock %}

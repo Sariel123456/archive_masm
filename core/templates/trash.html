@@ -1,0 +1,138 @@
+<!-- filepath: core/templates/trash.html -->
+{% extends 'base_2.html' %}
+{% load static %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight">Corbeille</h1>
+            <p class="text-muted-foreground">
+                Consultez et gérez les éléments supprimés du ministère
+            </p>
+        </div>
+    </div>
+
+    <div class="bg-white border rounded-lg shadow">
+        <div class="p-6 border-b">
+            <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="relative">
+                    <input type="text"
+                           name="search"
+                           value="{{ search_query }}"
+                           placeholder="Rechercher par titre ou créateur..."
+                           class="w-full pl-10 pr-4 py-2 border rounded-md">
+                    <svg class="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </div>
+                <select name="structure" class="w-full p-2 border rounded-md">
+                    <option value="">Toutes les structures</option>
+                    {% for structure in structures %}
+                    <option value="{{ structure.id }}" {% if structure_filter == structure.id|stringformat:"s" %}selected{% endif %}>
+                        {{ structure.nom }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <select name="importance" class="w-full p-2 border rounded-md">
+                    <option value="">Toutes les importances</option>
+                    {% for importance in importance_choices %}
+                    <option value="{{ importance.0 }}" {% if importance_filter == importance.0 %}selected{% endif %}>
+                        {{ importance.1 }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <div class="flex items-center space-x-2">
+                    <input type="checkbox" id="public-only" name="public_only" {% if public_only %}checked{% endif %} class="rounded border-gray-300">
+                    <label for="public-only" class="text-sm font-medium">Éléments publics uniquement</label>
+                </div>
+            </form>
+        </div>
+        <div class="p-6">
+            <div class="rounded-md border overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead>
+                        <tr>
+                            <th class="px-4 py-2 text-left">Type</th>
+                            <th class="px-4 py-2 text-left">Titre</th>
+                            <th class="px-4 py-2 text-left">Supprimé par</th>
+                            <th class="px-4 py-2 text-left">Date de suppression</th>
+                            <th class="px-4 py-2 text-left">Restauré ?</th>
+                            <th class="px-4 py-2 text-left">Restauré par</th>
+                            <th class="px-4 py-2 text-left">Date de restauration</th>
+                            <th class="px-4 py-2 text-left">Justification</th>
+                            <th class="px-4 py-2 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in trash_items %}
+                        <tr>
+                            <td class="px-4 py-2">{{ item.get_item_type_display }}</td>
+                            <td class="px-4 py-2">
+                                {% if item.dossier %}
+                                    {{ item.dossier.titre }}
+                                {% elif item.piece %}
+                                    {{ item.piece.titre }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-2">
+                                {% if item.supprime_par %}
+                                    {{ item.supprime_par.get_full_name|default:item.supprime_par.email }}
+                                {% else %}
+                                    Système
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-2">{{ item.date_suppression|date:"d/m/Y H:i" }}</td>
+                            <td class="px-4 py-2">
+                                {% if item.est_restauré %}
+                                    <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">Oui</span>
+                                {% else %}
+                                    <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">Non</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-2">
+                                {% if item.restauré_par %}
+                                    {{ item.restauré_par.get_full_name|default:item.restauré_par.email }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-2">
+                                {% if item.date_restoration %}
+                                    {{ item.date_restoration|date:"d/m/Y H:i" }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-2">{{ item.justification|default:"-" }}</td>
+                            <td class="px-4 py-2 text-right">
+                                <div class="flex gap-2 justify-end">
+                                    {% if not item.est_restauré %}
+                                    <form method="post" action="{% url 'restore_trash_item' item.id %}" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs">Restaurer</button>
+                                    </form>
+                                    {% endif %}
+                                    <form method="post" action="{% url 'delete_trash_item' item.id %}" style="display:inline;" onsubmit="return confirm('Supprimer définitivement cet élément ?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-xs">Supprimer</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="h-24 text-center text-gray-500">
+                                Aucun élément dans la corbeille
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
